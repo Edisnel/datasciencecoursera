@@ -1,0 +1,141 @@
+
+# Reproducible Research Course Project 2
+# ======================================
+
+# Data processing
+
+library(R.utils)
+bunzip2("repdata_data_StormData.csv.bz2", "StormData.csv", remove = FALSE, skip = TRUE)
+storm <- read.csv("StormData.csv")
+storm$BGN_DATE<- as.Date(storm$BGN_DATE, "%m/%d/%Y")
+storm$YEAR<- as.numeric(format(storm$BGN_DATE, "%Y"))
+
+#Selecting the correct characteristics for data analysis
+#From the NOAA data, the most important data for this analysis are YEAR, 
+#EVTYPE, FATALITIES, INJURIES, PROPDMG, and CROPDMG. 
+#Note the first few lines of data, we could see the BGN_DATE starts in 1950. 
+#All of the other columns do not releate to economic outcome or public health.
+
+storm <- storm[,c("YEAR","EVTYPE","FATALITIES","INJURIES","PROPDMG","CROPDMG")]
+
+colSums(is.na(storm))
+
+## Fixing the most common mistakes in the Severe Weathter Event Types
+storm$EVTYPE <- toupper(storm$EVTYPE)
+storm$EVTYPE = gsub("TSTM","THUNDERSTORM",storm$EVTYPE)
+storm$EVTYPE = gsub("URBAN/SML STREAM FLD","THUNDERSTORM WIND",storm$EVTYPE)
+storm$EVTYPE = gsub("TSTM WIND","THUNDERSTORM WIND",storm$EVTYPE)
+storm$EVTYPE = gsub("THUNDERSTORM/HAIL","THUNDERSTORM WIND",storm$EVTYPE)
+storm$EVTYPE = gsub("RIP CURRENTS","RIP CURRENT",storm$EVTYPE)
+storm$EVTYPE = gsub("TYPHOON","HURRICANE",storm$EVTYPE)
+storm$EVTYPE = gsub("TEMPERATURE RECORD","HEAT",storm$EVTYPE)
+storm$EVTYPE = gsub("SMALL HAIL","HAIL",storm$EVTYPE)
+storm$EVTYPE = gsub("THUNDERSTORMS","THUNDERSTORM",storm$EVTYPE)
+storm$EVTYPE = gsub("HURRICANE/TYPHOON","HURRICANE",storm$EVTYPE)
+storm$EVTYPE = gsub("HURRICANE/HURRICANE","HURRICANE",storm$EVTYPE)
+storm$EVTYPE = gsub("STORM SURGE/TIDE","STORM SURGE",storm$EVTYPE)
+storm$EVTYPE = gsub("VOLCANIC ASHFALL","VOLCANIC ASH",storm$EVTYPE)
+storm$EVTYPE = gsub("   HIGH SURF ADVISORY","HIGH SURF",storm$EVTYPE)
+storm$EVTYPE = gsub("HEAVY SURF/HIGH SURF","HIGH SURF",storm$EVTYPE)
+storm$EVTYPE = gsub("$HAIL","HAIL", storm$EVTYPE)
+storm$EVTYPE = gsub("(TORNADO|^TORNADO)","TORNADO", storm$EVTYPE)
+storm$EVTYPE = gsub("(FLOOD|^FLOOD)","FLOOD", storm$EVTYPE)
+storm$EVTYPE = gsub("(WARM|^WARM)","HEAT", storm$EVTYPE)
+storm$EVTYPE = gsub("COLD","EXTREME COLD/WIND CHILL", storm$EVTYPE)
+storm$EVTYPE = gsub("(SLEET|^SLEET)","SLEET", storm$EVTYPE)
+storm$EVTYPE = gsub("(ICE|^ICE)","FROST/FREEZE", storm$EVTYPE)
+storm$EVTYPE = gsub("STRONG WINDS","STRONG WIND", storm$EVTYPE)
+
+
+
+#Results
+
+# Across the United States, which types of events 
+#(as indicated in the EVTYPE variable) are most harmful with 
+#respect to population health? 
+
+#The number of human fatalities and injuries caused by a Severe 
+#Weather Event were stored in the columns of FATALITIES and INJURIES
+
+# Analyzing the deaths caused by Severe Weather Event
+
+deathsF <- aggregate(FATALITIES ~ EVTYPE, data = storm, FUN = sum)
+deathsF <- deathsF[order(-deathsF$FATALITIES), ]
+head(deathsF,10)
+
+#As we can see TORNADO has the geater number of fatalities
+
+# Analyzing the injuries caused by Severe Weather Event
+
+deathsI <- aggregate(INJURIES ~ EVTYPE, data = storm, FUN = sum)
+deathsI <- deathsI[order(-deathsI$INJURIES), ]
+head(deathsI,10)
+
+#Then, TORNADO has the greatest number in causing deaths and injuries 
+
+
+#Plot 1
+fatalities_injuries <- aggregate(cbind(FATALITIES + INJURIES) ~ EVTYPE, data = storm, FUN = sum)
+colnames(fatalities_injuries)<- c("Event", "Total")
+fatalities_injuries <- fatalities_injuries[order(-fatalities_injuries$Total),]
+fatalities_injuries<- head(fatalities_injuries, 10)
+
+library(ggplot2)
+g <- ggplot(fatalities_injuries,aes(Event,Total, fill = fatalities_injuries$Event)) +
+    geom_bar(stat="identity",width=0.75) +    
+    labs(x="Severe weather Event Type", y="Total number of Events") + 
+    guides(fill = FALSE)+
+    labs(title="Top 10 Most Harmful Events to Population Health")+
+    theme(axis.text.x = element_text(angle=45, vjust=0.5, size=10))
+
+print(g)
+
+
+#Across the United States, which types of events have 
+#the greatest economic consequences?
+
+#The number of human fatalities and injuries caused by a Severe 
+
+
+# Analyzing the crop damage caused by Severe Weather Event
+
+
+crop_dam <- aggregate(CROPDMG ~ EVTYPE, data = storm, FUN = sum)
+crop_dam <- crop_dam[order(-crop_dam$CROPDMG), ]
+head(crop_dam,10)
+
+#As we can see HAIL has the greatest number in crop damage
+
+# Analyzing the property damage caused by Severe Weather Event
+
+prop_dam <- aggregate(PROPDMG ~ EVTYPE, data = storm, FUN = sum)
+prop_dam <- prop_dam[order(-prop_dam$PROPDMG), ]
+head(prop_dam,10)
+
+#TORNADO has the greatest number in property damage
+
+#Plot 2
+crop_prop_damage <- aggregate(cbind(CROPDMG + PROPDMG) ~ EVTYPE, data = storm, FUN = sum)
+colnames(crop_prop_damage)<- c("Event", "Total")
+crop_prop_damage$Total <- crop_prop_damage$Total/1000000000
+crop_prop_damage <- crop_prop_damage[order(-crop_prop_damage$Total),]
+crop_prop_damage<- head(crop_prop_damage, 10)
+
+g1 <- ggplot(crop_prop_damage,aes(Event,Total, fill = crop_prop_damage$Event)) +
+    geom_bar(stat="identity",width=0.75) +    
+    labs(x="Severe weather Event Type", y="Total amount of damage(in billions of dollars)") + 
+    guides(fill = FALSE)+
+    labs(title="Top 10 events with the greatest economic consequences")+
+    theme(axis.text.x = element_text(angle=45, vjust=0.5, size=10))
+
+print(g1)
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,56 @@
+---
+output: html_document
+---
+
+Statistical Inference Course Project
+====================================
+
+##Part 2: Basic Inferential Data Analysis
+
+In this second part of the project, the ToothGrowth data is analyzed. 
+
+### 1. Load the ToothGrowth data and perform some basic exploratory data analyses
+
+```{r}
+library(ggplot2)
+library(datasets)
+data(ToothGrowth)
+#plot(x = ToothGrowth$supp, y=ToothGrowth$dose)
+
+g <- ggplot(ToothGrowth, aes(x=len, y=dose, colour=supp)) +     
+    geom_smooth()+
+    labs(x="Len", y=expression("Dose"))+
+    labs(title = paste('Relation betwen length of teeth with dose'))+
+    geom_line(aes(group=supp))
+g
+
+
+```
+
+The above figure shows the relation between the growth of teeth(len) and dose of two different types(supp: VC, OJ). 
+
+### 2. Provide a basic summary of the data.
+```{r}
+head(ToothGrowth,10)
+str(ToothGrowth)
+summary(ToothGrowth)
+
+```
+### 3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+
+In the present test it is assumed that the groups are independent and different variance per group. From sixty observations, 30 corresponds to subjects treated with supp VC and another 30 with supp OJ at doses 0.5, 1 and 2. Let's see the influence of each treatment in the tooth length 
+
+```{r}
+# Comparing tooth growth by supp
+g1 <- ToothGrowth$len[1 : 30]  # supp : VC
+g2 <- ToothGrowth$len[31 : 60] # supp : OJ
+t.test(g2, g1, paired = FALSE,var.equal = TRUE, alternative = "two.sided")
+```
+
+### 4. State your conclusions and the assumptions needed for your conclusions
+
+From the previous results we can conclude that the higher values of tooth length are influenced by supp VC. The difference in means shows that the two groups under experiment have a different behaviour under the treatment with supp VC and OJ.
+Since the p-value = 0.06039 and alpha = 0.05 for this two sided hypothesis test, we fail to reject the null hypothesis in this case.
+
+
+
