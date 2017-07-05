@@ -53,29 +53,6 @@ channel_views = joined_dataset.map(extract_channel_views).reduceByKey(lambda a,b
 
 
 
-
-
-
-#total_genn = fileA_B_C_genn.map(split_show_views).reduceByKey(lambda a,b:a+b)
-#total_genn.collect()
-
-#total_genc = fileA_B_C_genc.map(split_filestr).groupByKey().mapValues(list)
-#total_genc.collect()
-
-#total_joined = total_genc.join(total_genn)
-    
-#fileA_data = fileA.map(split_fileA)
-#fileB_data = fileB.map(split_fileB)    
-#fileB_joined_fileA = fileB_data.join(fileA_data)
-#fileB_joined_fileA.saveAsTextFile('file:///home/ecarrazana/Escritorio/AdvancedJoin/mycsv.csv')
-
-
-
-
-
-
- 
-    
     
     
 
